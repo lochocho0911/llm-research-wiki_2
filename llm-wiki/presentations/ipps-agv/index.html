@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>製程、機台與 AGV 整合排程</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#e8e9e8;color:#283945;font-family:"Noto Sans CJK TC","Microsoft JhengHei",system-ui,sans-serif;min-height:100dvh;display:grid;place-content:center;gap:12px}main{width:min(96vw,calc((100dvh - 64px)*16/9),1420px);aspect-ratio:16/9;container-type:inline-size}section{height:100%;background:#f7f7f1;border-radius:1.2cqw;padding:5.3cqw 6cqw 4.5cqw;position:relative;overflow:hidden;box-shadow:0 8px 30px #1c33401a;background-image:radial-gradient(#72879825 .65px,transparent .65px);background-size:12px 12px}section[hidden]{display:none}.cover{background-color:#faf3e7;display:grid;grid-template-columns:2fr 1fr;align-items:center;gap:3cqw}.cover[hidden]{display:none}h1,h2,p{margin:0}h1{font-size:4.5cqw;line-height:1.35;letter-spacing:.04em}h2{font-size:3.9cqw;line-height:1.25;margin-bottom:2.7cqw}.tag{display:inline-block;background:#e1c3bf;padding:.55cqw 1.3cqw;margin-bottom:1.6cqw;transform:rotate(-2deg);font-size:1.55cqw}.sub{font-size:1.95cqw;line-height:1.5;margin-top:2cqw}footer{position:absolute;bottom:2.5cqw;left:6cqw;font-size:1.25cqw;color:#4b5e6b}a{color:inherit;text-underline-offset:3px}.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1.3cqw}.tile,.note,.step{background:#dce6ee;padding:2cqw;border-radius:1.1cqw;font-size:2.1cqw;line-height:1.5}.tile:nth-child(even),.step:nth-child(even){background:#e7e0ec}.tile small{display:block;font-size:1.5cqw}.formula{display:flex;justify-content:center;background:#fffdfa;border-radius:1cqw;margin-top:2cqw;padding:1.5cqw;font-size:3.4cqw}.note{background:#f0d9c9;margin-top:1.8cqw}.steps{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:1.25cqw}.arrow{font-size:2.2cqw}.lanes{display:grid;grid-template-columns:16% repeat(3,1fr);gap:1.2cqw;align-items:center}.lane{font-size:2cqw;font-weight:700}.dash{height:1px;background:#aebec9}.orange{background:#efd4c2}.bars{display:grid;gap:1.12cqw}.row{display:grid;grid-template-columns:9% 1fr 11%;align-items:center;gap:1cqw;font-size:2cqw}.track{background:#e9edf0;border-radius:.65cqw;overflow:hidden}.fill{height:2.7cqw;background:#aabfce}.row:first-child .fill{background:#daa78f}.conditions{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5cqw}.sticker{position:relative;width:24cqw;height:23cqw;transform:rotate(-9deg);background:#fffdfa;border:1cqw solid white;border-radius:44% 46% 41% 40%;box-shadow:0 .5cqw 1.7cqw #71574522;display:grid;place-items:center}.robot{position:relative;width:15cqw;height:8.4cqw;background:#bfd0c1;border:solid .45cqw #475b56;border-radius:2.1cqw;margin-top:3.2cqw}.robot:before{content:"• ᴗ •";position:absolute;inset:1cqw 2cqw;display:grid;place-items:center;background:#fff7e9;border-radius:1cqw;font-size:2.45cqw}.robot:after{content:"";position:absolute;left:1.3cqw;bottom:-1.4cqw;width:2.9cqw;height:1.5cqw;border-radius:50%;background:#475b56;box-shadow:8.7cqw 0 #475b56}.box{position:absolute;top:3.3cqw;left:8.2cqw;width:6.2cqw;height:4.3cqw;background:linear-gradient(90deg,#dfbfae 42%,#f0d9b7 42% 58%,#dfbfae 58%);border:.4cqw solid #796355;border-radius:.5cqw}
+nav{display:flex;justify-content:center;align-items:center;gap:12px}button{background:#faf8f2;border:1px solid #b4bec6;border-radius:8px;padding:4px 12px;color:#283945;cursor:pointer}button:disabled{opacity:.38;cursor:default}button:focus-visible,a:focus-visible{outline:2px solid #4d6c82}output{min-width:50px;text-align:center;font-size:13px}@media print{body{display:block;background:white}main{width:100%;height:auto;aspect-ratio:auto}section,section[hidden],.cover[hidden]{display:block;aspect-ratio:16/9;page-break-after:always;box-shadow:none;print-color-adjust:exact}.cover,.cover[hidden]{display:grid}nav{display:none}}
+</style>
+<main>
+<section class="cover">
+<div><span class="tag">論文討論 · 整合排程</span><h1>如何同時最佳化<br>製程路徑、機台作業<br>及 AGV 運輸？</h1><p class="sub">以縮短整體生產時間為目標</p></div>
+<div class="sticker" aria-hidden="true"><i class="box"></i><i class="robot"></i></div>
+<footer><a href="../../wiki/sources/liu-2023-ipps-agv.md">Liu 等人（2023）</a> · Journal of Manufacturing Systems</footer>
+</section>
+<section hidden>
+<h2>四項決策，一個完工目標</h2>
+<div class="tiles"><div class="tile">製程路徑<small>選擇加工路線</small></div><div class="tile">工序排序<small>安排加工先後</small></div><div class="tile">機台指派<small>決定加工機台</small></div><div class="tile">AGV 指派<small>分派搬運任務</small></div></div>
+<div class="formula"><math display="block"><semantics><mrow><mi mathvariant="normal">min</mi><mspace width=".3em"/><msub><mi>C</mi><mi mathvariant="normal">max</mi></msub><mo>,</mo><mspace width="1em"/><msub><mi>C</mi><mi mathvariant="normal">max</mi></msub><mo>=</mo><munder><mi mathvariant="normal">max</mi><mi>j</mi></munder><msub><mi>C</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\min C_{\max}, \qquad C_{\max}=\max_j C_j</annotation></semantics></math></div>
+<p class="sub">目標是讓最後一件工件儘早完工。<i>C</i><sub>j</sub> 為工件 <i>j</i> 的完工時間。</p>
+<footer><a href="../../wiki/sources/liu-2023-ipps-agv.md">來源：Liu 等人（2023），§3</a></footer>
+</section>
+<section hidden>
+<h2>關鍵路徑可能經過 AGV</h2>
+<div class="lanes"><div class="lane">機台作業</div><div class="tile orange">前段加工 ↓</div><div class="dash"></div><div class="tile orange">後段加工</div>
+<div class="lane">AGV 作業</div><div class="dash"></div><div class="tile orange">搬運 ↗</div><div class="dash"></div></div>
+<div class="note">當加工與搬運串成決定完工時間的作業鏈，AGV 任務也可能是改善的切入點。</div>
+<footer><a href="../../wiki/concepts/critical-path-search-in-ipps.md">來源：Liu 等人（2023），§3–4、圖 6–8</a> · 相依關係示意</footer>
+</section>
+<section hidden>
+<h2>在基因演算法中搜尋更好的排程</h2>
+<div class="steps"><div class="step"><strong>整合編碼</strong><br>同一個體表示四項排程決策</div><span class="arrow">→</span><div class="step"><strong>找關鍵作業</strong><br>查看機台與 AGV 的關鍵路徑</div><span class="arrow">→</span><div class="step"><strong>鄰域搜尋</strong><br>以改自 N8 的搜尋策略執行突變</div></div>
+<div class="note">新排程須符合製程優先關係與資源限制。</div>
+<footer><a href="../../wiki/sources/liu-2023-ipps-agv.md">來源：Liu 等人（2023），§3–4</a></footer>
+</section>
+<section hidden>
+<h2>案例 1 的平均完工時間縮短約 12.4%</h2>
+<div class="bars" aria-label="各方法的平均最大完工時間，條長共用零起點">
+<div class="row"><strong>IGA</strong><div class="track"><div class="fill" style="width:86.76%"></div></div><b>537.9</b></div>
+<div class="row"><strong>GA</strong><div class="track"><div class="fill" style="width:99.03%"></div></div><span>614.0</span></div>
+<div class="row"><strong>SA</strong><div class="track"><div class="fill" style="width:97.92%"></div></div><span>607.1</span></div>
+<div class="row"><strong>PSO</strong><div class="track"><div class="fill" style="width:93.11%"></div></div><span>577.3</span></div>
+</div>
+<p class="sub">IGA 相對 GA · 案例 1 · AGV／工件比 1.00 · 各方法執行 10 次</p>
+<footer><a href="../../wiki/sources/liu-2023-ipps-agv.md">來源：Liu 等人（2023），§5、表 7、p. 135</a></footer>
+</section>
+<section hidden>
+<h2>結果成立的條件</h2>
+<div class="conditions"><div class="tile"><strong>加工與搬運</strong><br>開始後不中斷</div><div class="tile"><strong>裝卸作業</strong><br>計入運輸時間</div><div class="tile"><strong>最佳化目標</strong><br>最大完工時間</div></div>
+<div class="note">這組結果來自擴充基準。實際產線的改善幅度待驗證，耗能與機台負載可納入後續研究。</div>
+<footer><a href="../../wiki/sources/liu-2023-ipps-agv.md">來源：Liu 等人（2023），§3、§5–6</a></footer>
+</section>
+</main>
+<nav aria-label="簡報控制"><button id="prev">上一頁</button><output aria-live="polite"></output><button id="next">下一頁</button><button id="full">全螢幕</button></nav>
+<script>
+const pages = [...document.querySelectorAll('section')];
+const prev = document.querySelector('#prev');
+const next = document.querySelector('#next');
+const output = document.querySelector('output');
+let current = 0;
+function show(index) {
+  current = Math.max(0, Math.min(index, pages.length - 1));
+  pages.forEach((page, i) => { page.hidden = i !== current; });
+  output.value = (current + 1) + ' / ' + pages.length;
+  prev.disabled = current === 0;
+  next.disabled = current === pages.length - 1;
+}
+prev.onclick = () => show(current - 1);
+next.onclick = () => show(current + 1);
+const full = document.querySelector('#full');
+full.hidden = !document.fullscreenEnabled;
+full.onclick = async () => {
+  if (document.fullscreenElement) await document.exitFullscreen();
+  else await document.documentElement.requestFullscreen();
+};
+document.addEventListener('fullscreenchange', () => {
+  full.textContent = document.fullscreenElement ? '離開全螢幕' : '全螢幕';
+});
+document.addEventListener('keydown', event => {
+  const delta = { ArrowLeft: -1, ArrowRight: 1, PageUp: -1, PageDown: 1 }[event.key];
+  if (delta) { event.preventDefault(); show(current + delta); }
+});
+show(0);
+</script>
+</html>
